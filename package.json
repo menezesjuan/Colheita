@@ -1,0 +1,12 @@
+{
+  "name": "colheita-dos-sonhos-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jogo Social de Fazenda Online Completo",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "test": "npm --prefix backend test"
+  }
+}
