@@ -16,6 +16,7 @@ import { CardDoubleBezel } from '../common/CardDoubleBezel.js';
 import { ItemSprite } from '../sprites/GameSprites.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { apiRequest } from '../../api/client.js';
+import { sounds } from '../../utils/sound.js';
 
 interface MarketListingData {
   id: string;
@@ -177,6 +178,7 @@ export const MarketModal: React.FC<MarketModalProps> = ({
 
       if (!res.success) throw new Error(res.error);
 
+      sounds.playCoins();
       confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
       setBuyingListingId(null);
       await fetchListings();

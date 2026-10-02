@@ -20,6 +20,16 @@ export default {
       },
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+      },
+      animation: {
+        'spin-slow': 'spin 20s linear infinite',
+        'bounce-gentle': 'bounceGentle 2s ease-in-out infinite',
+      },
+      keyframes: {
+        bounceGentle: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        }
       }
     },
   },

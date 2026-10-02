@@ -4,6 +4,7 @@ import { CardDoubleBezel } from '../common/CardDoubleBezel.js';
 import { ItemSprite } from '../sprites/GameSprites.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { apiRequest } from '../../api/client.js';
+import { sounds } from '../../utils/sound.js';
 
 interface ShopItem {
   id: string;
@@ -68,6 +69,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onItemPur
 
       if (!res.success) throw new Error(res.error);
 
+      sounds.playCoins();
       setFeedback(res.message || 'Compra realizada com sucesso!');
       await refreshUser();
       await onItemPurchased();

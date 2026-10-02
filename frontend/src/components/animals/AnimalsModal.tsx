@@ -5,6 +5,7 @@ import { CardDoubleBezel } from '../common/CardDoubleBezel.js';
 import { AnimalSprite, ItemSprite } from '../sprites/GameSprites.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { apiRequest } from '../../api/client.js';
+import { sounds } from '../../utils/sound.js';
 
 interface AnimalInstanceData {
   id: string;
@@ -95,6 +96,7 @@ export const AnimalsModal: React.FC<AnimalsModalProps> = ({ isOpen, onClose, onR
         body: JSON.stringify({ instanceId })
       });
       if (!res.success) throw new Error(res.error);
+      sounds.playPlant();
       await fetchAnimals();
     } catch (err: any) {
       alert(err.message || 'Falha ao alimentar animal.');
@@ -112,6 +114,7 @@ export const AnimalsModal: React.FC<AnimalsModalProps> = ({ isOpen, onClose, onR
       });
       if (!res.success) throw new Error(res.error);
 
+      sounds.playHarvest();
       confetti({ particleCount: 25, spread: 50, origin: { y: 0.6 } });
       await fetchAnimals();
       await refreshUser();
@@ -132,6 +135,7 @@ export const AnimalsModal: React.FC<AnimalsModalProps> = ({ isOpen, onClose, onR
       });
       if (!res.success) throw new Error(res.error);
 
+      sounds.playCoins();
       await fetchAnimals();
       await refreshUser();
       setActiveTab('corral');

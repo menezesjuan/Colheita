@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Shovel, Sparkles, Clock, AlertCircle } from 'lucide-react';
+import { Shovel, Sparkles, Clock, Droplets, Volume2, VolumeX } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { SoilTileSprite, GrassTileSprite, CropGrowthSprite } from '../sprites/GameSprites.js';
+import { 
+  SoilTileIsometric, 
+  GrassTileIsometric, 
+  CropStageIsometric,
+  WindmillSprite,
+  FarmhouseSprite,
+  BarnSprite,
+  GuardDogSprite,
+  ScarecrowSprite
+} from '../sprites/GameSprites.js';
+import { sounds } from '../../utils/sound.js';
 
 export interface TileData {
   id: string;
@@ -34,16 +44,17 @@ export const FarmCanvas: React.FC<FarmCanvasProps> = ({
   onHarvest,
   onTill
 }) => {
-  // Estado local para tick de contagem regressiva em tempo real a cada segundo
   const [localTiles, setLocalTiles] = useState<TileData[]>(tiles);
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
+  // Sincronizar tiles externos
   useEffect(() => {
     setLocalTiles(tiles);
   }, [tiles]);
 
-  // Timer local a cada segundo para decrementar o secondsRemaining no cliente
+  // Contagem regressiva suave no cliente a cada segundo
   useEffect(() => {
     const timer = setInterval(() => {
       setLocalTiles(prev =>
@@ -71,19 +82,19 @@ export const FarmCanvas: React.FC<FarmCanvasProps> = ({
     try {
       setActionLoading(tileKey);
 
-      // Ação inteligente baseada no estado do tile ou na ferramenta selecionada
       if (tile.tileType === 'grass') {
+        sounds.playTill();
         await onTill(tile.x, tile.y);
         return;
       }
 
       if (tile.tileType === 'soil') {
         if (tile.state === 'ready') {
-          // Colheita com efeito de celebração
+          sounds.playHarvest();
           confetti({
-            particleCount: 30,
-            spread: 60,
-            origin: { y: 0.7 }
+            particleCount: 40,
+            spread: 70,
+            origin: { y: 0.65 }
           });
           await onHarvest(tile.x, tile.y);
           return;
@@ -91,9 +102,11 @@ export const FarmCanvas: React.FC<FarmCanvasProps> = ({
 
         if (tile.state === 'empty') {
           if (!selectedSeedId) {
+            sounds.playClick();
             alert('Selecione uma semente na barra inferior antes de plantar!');
             return;
           }
+          sounds.playPlant();
           await onPlant(tile.x, tile.y, selectedSeedId);
           return;
         }
@@ -105,18 +118,102 @@ export const FarmCanvas: React.FC<FarmCanvasProps> = ({
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center p-6">
-      {/* Moldura da Fazenda com Double Bezel */}
-      <div className="relative p-3 rounded-3xl bg-white/[0.02] ring-1 ring-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]">
-        <div className="relative p-6 rounded-[calc(1.5rem-0.375rem)] bg-[#0a110c] border border-white/5 overflow-hidden">
-          
-          {/* Luz ambiente volumétrica de fundo */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+  // Parâmetros da Grade Isométrica 2.5D
+  const tileWidth = 104;
+  const tileHeight = 52;
+  const originX = 350; // centro do campo
+  const originY = 110;
 
-          {/* Grid da Fazenda (6 colunas) */}
-          <div className="grid grid-cols-6 gap-2.5 relative z-10">
+  return (
+    <div className="relative w-full max-w-6xl mx-auto px-4 flex flex-col items-center">
+      
+      {/* Botão de Controle de Efeitos Sonoros */}
+      <div className="w-full flex items-center justify-between mb-3 px-2">
+        <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-semibold text-white">Fazenda Viva em 2.5D</span>
+          <span className="text-zinc-500">• Estilo Colheita Feliz</span>
+        </div>
+
+        <button
+          onClick={() => {
+            const next = !soundEnabled;
+            setSoundEnabled(next);
+            sounds.enabled = next;
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs text-zinc-300 transition-all active:scale-[0.96]"
+          title="Alternar Áudio Orgânico do Jogo"
+        >
+          {soundEnabled ? (
+            <>
+              <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Sons Ativos</span>
+            </>
+          ) : (
+            <>
+              <VolumeX className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Sons Mudos</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Caixa do Cenário Rural com Double Bezel de Luxo */}
+      <div className="w-full relative p-2.5 rounded-3xl bg-white/[0.02] ring-1 ring-white/10 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.8)] overflow-hidden">
+        
+        {/* Camada Interna do Cenário (Colinas, Céu e Luz Solar) */}
+        <div className="relative w-full rounded-[calc(1.5rem-0.25rem)] bg-gradient-to-b from-[#0c1e13] via-[#09150d] to-[#060e09] border border-white/5 overflow-hidden min-h-[580px] sm:min-h-[640px] flex items-center justify-center">
+          
+          {/* Sol Dourado e Raios Volumétricos de Fundo */}
+          <div className="absolute top-6 right-16 w-32 h-32 rounded-full bg-amber-400/20 blur-2xl pointer-events-none" />
+          <div className="absolute top-10 right-20 w-16 h-16 rounded-full bg-amber-300/40 blur-md pointer-events-none" />
+
+          {/* Colinas Onduladas do Horizonte */}
+          <svg className="absolute bottom-0 left-0 w-full h-48 opacity-30 pointer-events-none" viewBox="0 0 1000 200" preserveAspectRatio="none">
+            <path d="M 0,200 L 0,80 Q 250,20 500,80 T 1000,60 L 1000,200 Z" fill="#1b4d24" />
+            <path d="M 0,200 L 0,110 Q 300,50 650,110 T 1000,100 L 1000,200 Z" fill="#143b1c" />
+          </svg>
+
+          {/* Construções da Fazenda ao Fundo */}
+          {/* Moinho de Vento (Lado Esquerdo Superior) */}
+          <div className="absolute top-6 left-8 z-10 hidden sm:block opacity-90 hover:opacity-100 transition-opacity">
+            <WindmillSprite size={110} />
+            <span className="block text-center text-[10px] font-semibold text-zinc-400 mt-1">Moinho Solar</span>
+          </div>
+
+          {/* Casinha Colonial & Celeiro (Lado Direito Superior) */}
+          <div className="absolute top-6 right-8 z-10 hidden sm:flex items-end gap-3 opacity-90 hover:opacity-100 transition-opacity">
+            <div className="text-center">
+              <FarmhouseSprite size={100} />
+              <span className="block text-[10px] font-semibold text-zinc-400">Sede</span>
+            </div>
+            <div className="text-center">
+              <BarnSprite size={105} />
+              <span className="block text-[10px] font-semibold text-zinc-400">Celeiro</span>
+            </div>
+          </div>
+
+          {/* Espantalho no Canto da Horta */}
+          <div className="absolute bottom-12 left-10 z-20 hidden md:block">
+            <ScarecrowSprite size={70} />
+            <span className="block text-center text-[10px] font-semibold text-amber-300">Zé Espantalho</span>
+          </div>
+
+          {/* Cão de Guarda da Fazenda (O clássico cãozinho da Colheita Feliz) */}
+          <div className="absolute bottom-12 right-12 z-20 hidden md:block">
+            <GuardDogSprite size={60} />
+            <span className="block text-center text-[10px] font-semibold text-amber-400">Rex Guardião</span>
+          </div>
+
+          {/* TABULEIRO ISOMÉTRICO 2.5D DOS CANTEIROS */}
+          <div className="relative z-10 w-[720px] h-[480px] my-auto">
             {localTiles.map(tile => {
+              // Projeção Isométrica Clássica
+              const xPos = (tile.x - tile.y) * (tileWidth / 2) + originX;
+              const yPos = (tile.x + tile.y) * (tileHeight / 2) + originY;
+              
+              // Z-Index calculado pela soma (x + y) para sobreposição correta
+              const zIndex = (tile.x + tile.y) * 10 + 10;
               const isHovered = hoveredTile?.x === tile.x && hoveredTile?.y === tile.y;
               const isReady = tile.state === 'ready';
               const isGrowing = tile.state === 'growing';
@@ -125,50 +222,74 @@ export const FarmCanvas: React.FC<FarmCanvasProps> = ({
               return (
                 <div
                   key={tile.id}
+                  style={{
+                    position: 'absolute',
+                    left: `${xPos}px`,
+                    top: `${yPos}px`,
+                    zIndex: zIndex + (isHovered ? 50 : 0),
+                    width: `${tileWidth}px`,
+                    height: `${tileHeight + 20}px`
+                  }}
                   onMouseEnter={() => setHoveredTile({ x: tile.x, y: tile.y })}
                   onMouseLeave={() => setHoveredTile(null)}
                   onClick={() => handleTileClick(tile)}
-                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl cursor-pointer select-none transition-all duration-200 flex items-center justify-center ${
-                    isReady ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-zinc-950 scale-[1.03] animate-pulse' : ''
-                  } ${isHovered ? 'scale-[1.04]' : ''} ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                  className={`cursor-pointer select-none transition-transform duration-200 group ${
+                    isHovered ? '-translate-y-1' : ''
+                  } ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
                 >
-                  {/* Sprite do Terreno de Fundo */}
-                  <div className="absolute inset-0">
+                  {/* Canteiro Isométrico Base */}
+                  <div className="absolute top-0 left-0">
                     {tile.tileType === 'soil' ? (
-                      <SoilTileSprite size={undefined} className="w-full h-full" isHovered={isHovered} isWatered={tile.wateredAt !== null} />
+                      <SoilTileIsometric
+                        width={tileWidth}
+                        height={tileHeight + 20}
+                        isWatered={tile.wateredAt !== null}
+                        isHovered={isHovered}
+                      />
                     ) : (
-                      <GrassTileSprite size={undefined} className="w-full h-full" isHovered={isHovered} />
+                      <GrassTileIsometric
+                        width={tileWidth}
+                        height={tileHeight + 20}
+                        isHovered={isHovered}
+                      />
                     )}
                   </div>
 
-                  {/* Conteúdo do Canteiro: Planta / Broto / Maduro */}
+                  {/* Planta Isométrica em Relevo (saindo do solo para cima) */}
                   {tile.cropId && (
-                    <div className="relative z-10 flex flex-col items-center justify-center">
-                      <CropGrowthSprite cropId={tile.cropId} state={tile.state as any} size={48} />
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 pointer-events-none z-20">
+                      <CropStageIsometric
+                        cropId={tile.cropId}
+                        state={tile.state as any}
+                        size={64}
+                        secondsRemaining={tile.secondsRemaining}
+                      />
                     </div>
                   )}
 
-                  {/* Indicador de Solo Vazio para Arar */}
+                  {/* Ícone de Arar quando passa o mouse na Grama */}
                   {tile.tileType === 'grass' && isHovered && (
-                    <div className="relative z-10 flex flex-col items-center justify-center bg-black/60 rounded-full p-1.5 backdrop-blur-sm">
-                      <Shovel className="w-4 h-4 text-emerald-300" strokeWidth={1.5} />
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-full bg-black/80 backdrop-blur-md border border-emerald-500/30 text-emerald-300 text-[10px] font-bold flex items-center gap-1 z-30 shadow-lg">
+                      <Shovel className="w-3 h-3" />
+                      Arar Terra
                     </div>
                   )}
 
-                  {/* Timer de Crescimento Flutuante */}
+                  {/* Plaquinha de Madeira com Timer Flutuante (Estilo Colheita Feliz) */}
                   {isGrowing && (
-                    <div className="absolute bottom-1 px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-md border border-white/10 flex items-center gap-1 z-20">
-                      <Clock className="w-2.5 h-2.5 text-emerald-400" strokeWidth={1.5} />
-                      <span className="text-[10px] font-mono text-zinc-300 font-semibold">
+                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-black/85 backdrop-blur-md border border-white/10 flex items-center gap-1 z-30 shadow-xl pointer-events-none">
+                      <Clock className="w-2.5 h-2.5 text-emerald-400 animate-spin-slow" />
+                      <span className="text-[10px] font-mono text-zinc-200 font-bold whitespace-nowrap">
                         {tile.secondsRemaining}s
                       </span>
                     </div>
                   )}
 
-                  {/* Destaque de Colheita Pronta */}
+                  {/* Destaque Radiante "COLHER!" (Pulsante e Convidativo) */}
                   {isReady && (
-                    <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 text-zinc-950 flex items-center justify-center shadow-lg shadow-amber-400/40 z-20">
-                      <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 text-[10px] font-extrabold flex items-center gap-1 z-40 shadow-lg shadow-amber-400/50 animate-bounce cursor-pointer">
+                      <Sparkles className="w-3 h-3" />
+                      COLHER
                     </div>
                   )}
                 </div>
@@ -177,18 +298,20 @@ export const FarmCanvas: React.FC<FarmCanvasProps> = ({
           </div>
 
           {/* Dica de Ação no Rodapé do Tabuleiro */}
-          <div className="mt-4 flex items-center justify-between text-xs text-zinc-400 px-1">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              Tempo do Servidor Sincronizado
+          <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-zinc-400 bg-black/50 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/5">
+            <span className="flex items-center gap-2">
+              <Droplets className="w-3.5 h-3.5 text-sky-400" />
+              Solo enriquecido com irrigação persistente
             </span>
-            <span className="text-zinc-500">
-              Clique na grama para arar • Clique na colheita madura para colher
+            <span className="hidden sm:inline text-zinc-400">
+              Clique para arar, semear e colher • Perspectiva Isométrica 2.5D
             </span>
           </div>
 
         </div>
+
       </div>
+
     </div>
   );
 };

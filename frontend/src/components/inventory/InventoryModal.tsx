@@ -4,6 +4,7 @@ import { CardDoubleBezel } from '../common/CardDoubleBezel.js';
 import { ItemSprite } from '../sprites/GameSprites.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { apiRequest } from '../../api/client.js';
+import { sounds } from '../../utils/sound.js';
 
 export interface InventoryItemData {
   id: string;
@@ -66,6 +67,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({
 
       if (!res.success) throw new Error(res.error);
 
+      sounds.playCoins();
       await onRefresh();
       await refreshUser();
       setSellingItemId(null);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trophy, Eye, Coins, Sparkles, User, MapPin } from 'lucide-react';
 import { CardDoubleBezel } from '../common/CardDoubleBezel.js';
-import { SoilTileSprite, GrassTileSprite, CropGrowthSprite, AnimalSprite } from '../sprites/GameSprites.js';
+import { SoilTileIsometric, GrassTileIsometric, CropStageIsometric, AnimalSprite } from '../sprites/GameSprites.js';
 import { apiRequest } from '../../api/client.js';
 
 interface LeaderboardUser {
@@ -149,15 +149,15 @@ export const SocialModal: React.FC<SocialModalProps> = ({ isOpen, onClose }) => 
                       >
                         <div className="absolute inset-0">
                           {tile.tileType === 'soil' ? (
-                            <SoilTileSprite size={undefined} className="w-full h-full" isWatered={tile.wateredAt !== null} />
+                            <SoilTileIsometric width={undefined} height={undefined} className="w-full h-full" isWatered={tile.wateredAt !== null} />
                           ) : (
-                            <GrassTileSprite size={undefined} className="w-full h-full" />
+                            <GrassTileIsometric width={undefined} height={undefined} className="w-full h-full" />
                           )}
                         </div>
 
                         {tile.cropId && (
                           <div className="relative z-10 flex flex-col items-center justify-center">
-                            <CropGrowthSprite cropId={tile.cropId} state={tile.state as any} size={40} />
+                            <CropStageIsometric cropId={tile.cropId} state={tile.state as any} size={40} />
                           </div>
                         )}
                       </div>
